@@ -1,0 +1,80 @@
+﻿@using GridMvc.Html
+@using GridMvc.Sorting
+@using SubGridModel.MockData;
+
+@model Grid.Mvc.Ajax.GridExtensions.AjaxGrid<SubGridModel.Models.MainTheatresGrid>
+@{
+    ViewBag.Title = "Movies In Theaters";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h2>Movies In Theaters</h2>
+@helper FormatCastColumn(List<tbl_MovieCast> castList)
+{
+    foreach(var cast in castList)
+    {
+       <ul>            
+            <li>
+                @cast.ActorFName @cast.ActorLName
+            </li>
+
+        </ul>  
+    }
+   
+       
+
+    }
+
+@helper RenderPartColumn(List<SubGridModel.Models.MoviesSubgrid> moviesList)
+{
+    <form method="POST" action="@Url.RouteUrl(new { controller = "Home", action = "MoviesInTheaterGrid" })">
+        <div id="pmGrid">
+            @Html.Grid(moviesList).Named("MoviesGrid").Columns(columns =>
+           {
+               columns.Add(c => c.MovieName).Titled("Movie Title.");
+               columns.Add(c => c.Rating).Titled("Movie Rating");
+               //foreach (var cast in castColumns)
+               //{
+               //    FormatCastColumn(cast.ActorFName, cast.ActorLName);
+               //}
+               columns.Add().Encoded(false).Sanitized(false).RenderValueAs(c => FormatCastColumn(c.CastList)).Titled("Cast");
+               columns.Add().Encoded(false).Sanitized(false).RenderValueAs(o => "<button class=\"glyphicon-minus btn btn-default\"></button>");
+               columns.Add().Encoded(false).Sanitized(false).RenderValueAs(o => "<button class=\"glyphicon-pencil btn btn-default\"></button>");
+
+           })
+        </div>
+    </form>
+}
+@if (Model != null)
+{
+    @Html.Grid(Model).Named("MovieTheatreGrid").Columns(columns =>
+    {
+        columns.Add().Encoded(false).Sanitized(false).RenderValueAs(o => Html.CheckBox("checked", false, new { name = "selectedGridRows" }));
+        columns.Add(c => c.TheatreId).Titled("Theatre#");
+        columns.Add().Encoded(false).Sanitized(false).Titled("Theatre Locations").RenderValueAs(b => RenderLocationsColumn(b.LocationsList).ToHtmlString());
+        columns.Add().Encoded(false).Sanitized(false).Titled("Movies").RenderValueAs(a => RenderPartColumn(a.MoviesList).ToHtmlString());
+    }).WithPaging(20)
+}
+
+@helper RenderLocationsColumn(List<SubGridModel.Models.MovieLocations> locationsList)
+{
+    <form method="POST" action="@Url.RouteUrl(new { controller = "Home", action = "MoviesInTheaterGrid" })">
+        <div>
+            @Html.Grid(locationsList).Columns(columns =>
+           {
+               columns.Add(c => c.Name).Titled("");
+               columns.Add(c => c.ContactNum).Titled("");
+           })
+        </div>
+    </form>
+}
+@section Scripts
+{
+    <script src="~/Scripts/gridmvc.js">
+
+    </script>
+
+}
+
+
